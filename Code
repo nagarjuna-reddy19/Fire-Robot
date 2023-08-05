@@ -1,0 +1,85 @@
+// Libraries
+#include <AFMotor.h>
+
+// Pin Definitions
+#define FLAME_SENSOR_PIN A0
+#define OBSTACLE_SENSOR_TRIG_PIN 7
+#define OBSTACLE_SENSOR_ECHO_PIN 8
+
+// Threshold Values
+#define FLAME_THRESHOLD 500  // Adjust this value based on your flame sensor sensitivity
+#define OBSTACLE_THRESHOLD 20 // Adjust this value based on your obstacle sensor distance
+
+// Motor Setup
+AF_DCMotor motor1(1); // Motor connected to M1
+AF_DCMotor motor2(2); // Motor connected to M2
+
+void setup() {
+  // Initialize Serial Communication (for debugging purposes)
+  Serial.begin(9600);
+
+  // Set the motor speed
+  motor1.setSpeed(200); // Adjust the speed as needed
+  motor2.setSpeed(200); // Adjust the speed as needed
+
+  // Set up the obstacle sensor pins
+  pinMode(OBSTACLE_SENSOR_TRIG_PIN, OUTPUT);
+  pinMode(OBSTACLE_SENSOR_ECHO_PIN, INPUT);
+}
+
+void loop() {
+  // Read flame sensor value
+  int flameValue = analogRead(FLAME_SENSOR_PIN);
+
+  // Check if fire is detected
+  if (flameValue < FLAME_THRESHOLD) {
+    extinguishFire();
+  } else {
+    // No fire, check for obstacles
+    int obstacleDistance = getObstacleDistance();
+    
+    if (obstacleDistance < OBSTACLE_THRESHOLD) {
+      avoidObstacle();
+    } else {
+      // Move forward if no obstacles or fire detected
+      moveForward();
+    }
+  }
+}
+
+// Function to move the robot forward
+void moveForward() {
+  motor1.run(FORWARD);
+  motor2.run(FORWARD);
+}
+
+// Function to avoid obstacles
+void avoidObstacle() {
+  motor1.run(BACKWARD);
+  motor2.run(BACKWARD);
+  delay(1000); // Reverse for 1 second
+  motor1.run(FORWARD);
+  motor2.run(BACKWARD);
+  delay(1000); // Turn left for 1 second (adjust time for your robot's behavior)
+}
+
+// Function to extinguish fire (you may add appropriate hardware for this)
+void extinguishFire() {
+  // Implement your fire extinguishing mechanism here
+  // For example, stop the motors and use a servo to deploy a water spray or fire extinguisher.
+}
+
+// Function to get obstacle distance using ultrasonic sensor
+int getObstacleDistance() {
+  digitalWrite(OBSTACLE_SENSOR_TRIG_PIN, LOW);
+  delayMicroseconds(2);
+  digitalWrite(OBSTACLE_SENSOR_TRIG_PIN, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(OBSTACLE_SENSOR_TRIG_PIN, LOW);
+
+  long duration = pulseIn(OBSTACLE_SENSOR_ECHO_PIN, HIGH);
+  int distance = duration * 0.034 / 2;
+
+  return distance;
+}
+ssss
